@@ -1,0 +1,3 @@
+{
+  "extends": ["plugin:prettier/recommended", "react-app"] // 추천하는대로..
+}
