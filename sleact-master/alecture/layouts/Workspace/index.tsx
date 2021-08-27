@@ -38,7 +38,7 @@ import CreateChannelModal from '@components/CreateChannelModal';
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
 
-const Workspace: VFC = () => {
+const Workspace: VFC = () => { // VFC : children필요없는 컴포넌트 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
   const [showInviteWorkspaceModal, setShowInviteWorkspaceModal] = useState(false);
@@ -52,7 +52,10 @@ const Workspace: VFC = () => {
   const { data: userData, error, revalidate, mutate } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000, // 2초
   });
-  const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
+  // 내 Workspace 채널들의 데이터를 서버로부터 받아옴 
+  const { data: channelData } = useSWR<IChannel[]>(
+    userData ? `/api/workspaces/${workspace}/channels` : null, fetcher); // ${workspace} : useParams()로 가져온 workspace변수 
+                                                                          // SWR은 이처럼 삼항연산자를 제공 (=로그인 안했을때는 userData가 없으므로, 채널 안가져오도록)
   const { data: memberData } = useSWR<IUser[]>(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
   const [socket, disconnect] = useSocket(workspace);
 
@@ -84,21 +87,22 @@ const Workspace: VFC = () => {
   }, []);
 
   const onClickUserProfile = useCallback(() => {
-    setShowUserMenu((prev) => !prev);
+    setShowUserMenu((prev) => !prev); // toggle function
+                                      // true면 false로, false면 true로 
   }, []);
 
   const onClickCreateWorkspace = useCallback(() => {
     setShowCreateWorkspaceModal(true);
   }, []);
 
-  const onCreateWorkspace = useCallback(
-    (e) => {
+  const onCreateWorkspace = useCallback((e) => {
       e.preventDefault();
-      if (!newWorkspace || !newWorkspace.trim()) return;
+      // 필수값들 다 들어있나 검사 
+      if (!newWorkspace || !newWorkspace.trim()) return; // 띄어쓰기까지 막으려면 trim()도 넣어주자
       if (!newUrl || !newUrl.trim()) return;
       axios
         .post(
-          '/api/workspaces',
+          '/api/workspaces', // 워크스페이스 생성하는 API
           {
             workspace: newWorkspace,
             url: newUrl,
@@ -110,17 +114,18 @@ const Workspace: VFC = () => {
         .then(() => {
           revalidate();
           setShowCreateWorkspaceModal(false);
-          setNewWorkpsace('');
-          setNewUrl('');
+          setNewWorkpsace(''); // 완료되고나서는 input창 비워주기  
+          setNewUrl(''); // 완료되고나서는 input창 비워주기 
         })
         .catch((error) => {
           console.dir(error);
-          toast.error(error.response?.data, { position: 'bottom-center' });
+          toast.error(error.response?.data, { position: 'bottom-center' }); // 사용자에게 에러표시
         });
     },
     [newWorkspace, newUrl],
   );
 
+  // 화면에 있는 모든 모달들을 전부 닫는 함수 
   const onCloseModal = useCallback(() => {
     setShowCreateWorkspaceModal(false);
     setShowCreateChannelModal(false);
@@ -140,6 +145,7 @@ const Workspace: VFC = () => {
     setShowInviteWorkspaceModal(true);
   }, []);
 
+  //Tip: return 아래에 hooks 있으면, 오류난다 (Error: Invalid hook call)
   if (!userData) { // 데이터가 없으면, 로그인화면으로 돌아간다  
     return <Redirect to="/login" />;
   }

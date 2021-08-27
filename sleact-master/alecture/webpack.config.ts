@@ -77,12 +77,12 @@ const config: webpack.Configuration = {
     historyApiFallback: true, // react router할때 필요한것 
     port: 3090, // 프론트: 3090, 백: 3095
     publicPath: '/dist/',
-    // proxy: {
-    //   '/api/': { // 프론트엔드에서 /api 로 보내는 요청은,
-    //     target: 'http://localhost:3095', // 주소를 3095로 바꿔서 보내겠다 
-    //     changeOrigin: true,
-    //   },
-    // },
+    proxy: {
+      '/api/': { // 프론트엔드에서 /api 로 보내는 요청은,
+        target: 'http://localhost:3095', // 주소를 3095로 바꿔서 보내겠다 
+        changeOrigin: true,
+      },
+    },
   },
 };
 

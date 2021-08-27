@@ -9,17 +9,21 @@ import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 import useSWR from 'swr';
 
+// TypeScript에서는 Props에 대한 타입을 명시해주어야 에러 안뜸 (=리액트의 propTypes)
 interface Props {
   show: boolean;
   onCloseModal: () => void;
   setShowCreateChannelModal: (flag: boolean) => void;
 }
+// Props로 넘겨받은것들을 매개변수로 명시 
 const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChannelModal }) => {
   const [newChannel, onChangeNewChannel, setNewChannel] = useInput('');
-  const { workspace, channel } = useParams<{ workspace: string; channel: string }>();
+  const { workspace, channel } = useParams<{ workspace: string; channel: string }>(); // 라우터 파라미터를 useParams()로 가져올 수 있다
+                                                                                      // <Route path="/workspace/:workspace/channel/:channel ...
   const { data: userData, error, revalidate } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000, // 2초
   });
+  // 채널 생성하자마자, 채널 리스트 다시 불러오기 (=revalidate)
   const { data: channelData, mutate, revalidate: revalidateChannel } = useSWR<IChannel[]>(
     userData ? `/api/workspaces/${workspace}/channels` : null,
     fetcher,
@@ -27,10 +31,10 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
 
   const onCreateChannel = useCallback(
     (e) => {
-      e.preventDefault();
+      e.preventDefault(); // 채널만들때 새로고침 안되도록 해줌 
       axios
         .post(
-          `/api/workspaces/${workspace}/channels`,
+          `/api/workspaces/${workspace}/channels`, // useParams()로 가져온 workspace변수 
           {
             name: newChannel,
           },
@@ -40,7 +44,7 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
         )
         .then((response) => {
           setShowCreateChannelModal(false);
-          revalidateChannel();
+          revalidateChannel(); // 채널 생성하자마자, 채널 리스트 다시 불러오기 
           setNewChannel('');
         })
         .catch((error) => {
